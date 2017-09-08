@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import Info from "./info"
+import Info from "../components/info"
 import Game from "../components/game"
 import * as squareUtil from "../util/squareUtil"
 import * as operate from "../util/operate"
@@ -9,13 +9,16 @@ import "../static/css/style.css"
 let cur = squareUtil.randmonSquare()
 let timer = null
 let pauseFlag = true
+let timeCount = 0
 
 export default class App extends Component {
     constructor(props) {
         super(props)
         this.state = {
             gameData: squareUtil.gamedata,
-            next: squareUtil.randmonSquare()
+            next: squareUtil.randmonSquare(),
+            score: 0,
+            showTime: 0
         }
     }
 
@@ -82,12 +85,15 @@ export default class App extends Component {
             if (flag) {
                 lines++
                 for (let k = i; k >= 1; k--) {
-                    gameData[k] = (gameData[k - 1])
+                    gameData[k] = gameData[k - 1]
                 }
-                gameData[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                gameData[0] = squareUtil.initLineData.splice(0)
                 i++
             }
         }
+
+        this.setState({ gameData })
+
         return lines
 
     }
@@ -128,7 +134,7 @@ export default class App extends Component {
             operate.clearKeyEvenet(this)
         } else {//继续
             operate.bindKeyEvenet(this)
-            timer = setInterval(this.move, 200)
+            timer = setInterval(this.move, 210)
         }
 
     }
@@ -191,6 +197,8 @@ export default class App extends Component {
 
     //自动下落
     move = () => {
+        timeCount++
+        squareUtil.addTime(timeCount, (showTime) => { this.setState({ showTime: showTime }) })
         if (cur.canDown(this.checkLegal)) {
             this.squareGO(cur.down)
         } else {
@@ -198,9 +206,15 @@ export default class App extends Component {
                 this.nextSquare()
                 this.setData()
                 this.stop()
+
+                alert("game over, your score is " + this.state.score)//结束动画
             } else {
                 this.fixed()
-                this.checkClear()//返回消的行数
+                let lines = this.checkClear()
+                if (lines) {//如果消除行数
+                    let score = this.state.score + squareUtil.getScore(lines)
+                    this.setState({ score })
+                }
                 this.nextSquare()
             }
         }
@@ -236,16 +250,17 @@ export default class App extends Component {
     //初始化，开始自动下落
     componentDidMount() {
         this.init()
-        timer = setInterval(this.move, 200)
+        timer = setInterval(this.move, 210)
     }
 
 
 
     render() {
+        let { score, showTime, next, gameData } = this.state
         return (
             <div>
-                <Game {...this.state} />
-                {/* <Info /> */}
+                <Game next={next} gameData={gameData} />
+                <Info score={score} showTime={showTime} />
             </div>
         )
     }

@@ -1,5 +1,6 @@
 import Square from "./square";
-import { setRandomClass } from "./squareUtil"
+import { setRandomClass, gamedata } from "./squareUtil"
+import * as randomUtil from "./randomUtil"
 
 const proto = Object.create(Square.prototype)
 
@@ -249,7 +250,7 @@ export default function (index, dir) {
 
 
     s.origin.x = 0
-    s.origin.y = 3
+    s.origin.y = randomUtil.randomBetween(3, gamedata[0].length - 3)
     s.class = randomClass
     s.rotate(dir)
     s.dir = dir
